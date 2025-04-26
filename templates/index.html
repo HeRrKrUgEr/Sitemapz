@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Sitemap Generator</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Sitemap Generator</h1>
+
+    <form action="{{ url_for('add') }}" method="post">
+        <input type="url" name="url" placeholder="https://example.com" required style="width:300px">
+        <select name="schedule">
+            <option value="0 * * * *">Every hour</option>
+            <option value="0 0 * * *">Daily at midnight</option>
+            <option value="0 3 * * *">Daily at 3 AM</option>
+            <option value="0 0 * * 0">Weekly (Sun midnight)</option>
+            <option value="0 0 1 * *">Monthly (1st @ midnight)</option>
+        </select>
+        <button type="submit">Add Website</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>URL</th>
+                <th>Schedule</th>
+                <th>Last Scan</th>
+                <th>Status</th>
+                <th>API Token</th>
+                <th>PHP Script</th>
+                <th>Scan Now</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for site in sites %}
+            <tr>
+                <td>{{ site.id }}</td>
+                <td><a href="{{ site.url }}" target="_blank">{{ site.url }}</a></td>
+                <td>{{ site.cron_schedule }}</td>
+                <td>{{ site.last_scan or '—' }}</td>
+                <td>{{ site.last_status or '—' }}</td>
+                <td style="font-family:monospace">{{ site.api_token }}</td>
+                <td><a href="{{ url_for('download_script', site_id=site.id) }}">Download</a></td>
+                <td>
+                    <form action="{{ url_for('scan_now', site_id=site.id) }}" method="post" style="display:inline;">
+                        <button type="submit">Scan Now</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
