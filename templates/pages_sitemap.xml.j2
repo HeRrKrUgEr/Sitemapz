@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-{% for url in urls %}
+{% for page in urls %}
   <url>
-    <loc>{{ url }}</loc>
-    <lastmod>{{  now.strftime("%Y-%m-%dT%H:%M:%SZ")  }}</lastmod>
+    <loc>{{ page.url }}</loc>
+    {% if page.lastmod %}
+    <lastmod>{{ page.lastmod.strftime("%Y-%m-%dT%H:%M:%SZ") }}</lastmod>
+    {% endif %}
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>

@@ -4,18 +4,39 @@
 <head>
     <meta charset="utf-8">
     <title>Sitemap Generator</title>
+    <!-- Alpine.js for reactive UI -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
         table {
             border-collapse: collapse;
-            width: 100%
+            width: 100%;
         }
 
         th,
         td {
             border: 1px solid #ccc;
-            padding: 8px
+            padding: 8px;
         }
     </style>
+    <script>
+        // Alpine component factory: takes the URL to POST to
+        function scanRow (actionUrl) {
+            return {
+                scanning: false,
+                start () {
+                    this.scanning = true;
+                    fetch(actionUrl, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                        .finally(() => {
+                            this.scanning = false;
+                            // you could add .then(resp => resp.json()).then(data => { ...update cells... })
+                        });
+                }
+            }
+        }
+    </script>
 </head>
 
 <body>
@@ -48,18 +69,29 @@
         </thead>
         <tbody>
             {% for site in sites %}
-            <tr>
+            <!-- attach Alpine state to each row -->
+            <tr x-data="scanRow('{{ url_for('scan_now', site_id=site.id) }}')">
                 <td>{{ site.id }}</td>
                 <td><a href="{{ site.url }}" target="_blank">{{ site.url }}</a></td>
                 <td>{{ site.cron_schedule }}</td>
                 <td>{{ site.last_scan or '—' }}</td>
                 <td>{{ site.last_status or '—' }}</td>
                 <td style="font-family:monospace">{{ site.api_token }}</td>
-                <td><a href="{{ url_for('download_script', site_id=site.id) }}">Download</a></td>
                 <td>
-                    <form action="{{ url_for('scan_now', site_id=site.id) }}" method="post" style="display:inline;">
-                        <button type="submit">Scan Now</button>
-                    </form>
+                    <a href="{{ url_for('download_script', site_id=site.id) }}">
+                        Download
+                    </a>
+                </td>
+                <td>
+                    <!-- Button shown when not scanning -->
+                    <button x-show="!scanning" @click.prevent="start()" type="button">
+                        Scan Now
+                    </button>
+                    <!-- Progress bar shown during scan -->
+                    <div x-show="scanning" style="display: inline-flex; align-items: center; gap: 0.5em;">
+                        <progress max="100" style="width: 100px;"></progress>
+                        <span>Scanning…</span>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
